@@ -460,16 +460,6 @@ const COLO_FILE = `${BCFI_PATH}/colo.txt`;
 const URL_FILE = `${BCFI_PATH}/url.txt`;
 const V4_FILE = `${BCFI_PATH}/ips-v4.txt`;
 const V6_FILE = `${BCFI_PATH}/ips-v6.txt`;
-/* 触发器 安装 */
-const onInstall = async () => {
-  await installBcfi();
-  return 0
-}
-const onUninstall = async () => {
-  await Plugins.confirm('确定要删除bettercloudflareip吗？', '配置文件将不会保留！')
-  await Plugins.Removefile(BCFI_PATH)
-  return 0
-}
 //带宽
 const bw$ = Plugin.BANDWIDTH < 0 ? 10 : Plugin.BANDWIDTH;
 const ipLocation$ = await Plugins.ignoredError(Plugins.Readfile, COLO_FILE);
@@ -482,20 +472,30 @@ if (env$.os == "windows") curl_away$ = "NUL";
 else curl_away$ = "/dev/null";
 //全局变量over
 
+// 安装所需配置文件
+const onInstall = async () => {
+  await installBcfi();
+  return 0
+}
+// 卸载配置文件
+const onUninstall = async () => {
+  await Plugins.confirm('确定要删除bettercloudflareip吗？', '配置文件将不会保留！')
+  await Plugins.Removefile(BCFI_PATH)
+  return 0
+}
+const onRun = async () => {
+  if (!(await checkConf())) return;
+  const { singbox_nodes, runTime } = await bcfi();
+  await Plugins.confirm('singbox节点', singbox_nodes);
+  //复制文本
+  await Plugins.ClipboardSetText(JSON.stringify(singbox_nodes, null, 2));
+  await Plugins.message.success('已复制');
+}
+
 // const onRun = async () => {
-//   if (!(await checkConf())) return;
-//   const { singbox_nodes, runTime } = await bcfi();
-//   await Plugins.confirm('singbox节点', singbox_nodes);
-//   //复制文本
-//   await Plugins.ClipboardSetText(JSON.stringify(singbox_nodes, null, 2));
-//   await Plugins.message.success('已复制');
+//   Plugins.alert('本插件的配置如下：', Plugin)
 
 // }
-
-const onRun = async () => {
-  Plugins.alert('本插件的配置如下：', Plugin)
-
-}
 
 //工具方法 使用更新订阅时检查是否存在指定文件名
 const checkFileName = async () => {
