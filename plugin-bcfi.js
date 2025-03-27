@@ -169,8 +169,10 @@ const bcfi = async () => {
 
 const cftest = async () => {
   let ipSpeedData = [];
+  const { id } = Plugins.message.info('程序开始执行...', 999999)
   while (true) {
     let rttMap = null;
+    Plugins.message.update(id, '正在RTT测试新的可用ip...')
     while(true) {
       const ipnum = 100;
       let ipArr = [];
@@ -193,8 +195,10 @@ const cftest = async () => {
       }
       else break;
     }
+    Plugins.message.update(id, '可用ip获取完成！')
     const ipRttArr = [...rttMap.entries()];
     const allIp = ipRttArr.map(i=>i[0]);
+    Plugins.message.update(id, '正在测速可用ip中...')
     const speedRes = !Plugin.TLS
         ? await limitConcurrency(allIp, Plugin.CONCURRENCY_NUM, speedtesthttp)
         : await limitConcurrency(allIp, Plugin.CONCURRENCY_NUM, speedtesthttps);
@@ -213,6 +217,8 @@ const cftest = async () => {
     let last_num = Plugin.VLESS_NUM - ipSpeedData.length;
     last_num = last_num<0? 0 : last_num;
     console.log(`还剩${last_num}个ip数未达到设置的量`);
+    Plugins.message.update(id, `还剩${last_num}个ip数未达到设置的量`)
+    await Plugins.sleep(1000);
     if (ipSpeedData.length >= Plugin.VLESS_NUM) break;
     if (ipSpeedData.length==0) await Plugins.confirm("当前所有IP都存在测速失败，是否继续新的测速，如果多次测速全失败，请检查你的网络环境，不要执着新的测速");
     
