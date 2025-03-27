@@ -163,10 +163,10 @@ const bcfi = async () => {
   console.log(singbox_nodes);
   const endTime = new Date();
   const runTime = Math.round((endTime - startTime)/1000);
-  const { id } = Plugins.message.info(`完成! 总计用时${runTime} 秒`, 999999)
+  // const { id } = Plugins.message.info(`完成! 总计用时${runTime} 秒`, 999999)
   console.log(`完成! 总计用时${runTime} 秒`);
-  await Plugins.sleep(3000);
-  Plugins.message.destroy(id);
+  // await Plugins.sleep(3000);
+  // Plugins.message.destroy(id);
   return { singbox_nodes, runTime };
 }
 
@@ -611,6 +611,9 @@ const onRun = async () => {
   //复制文本
   await Plugins.ClipboardSetText(JSON.stringify(singbox_nodes, null, 2));
   await Plugins.message.success('已复制');
+  const { id } = Plugins.message.info(`恭喜！订阅${Plugin.IPV} ${Plugin.VLESS_NUM}个节点成功！\n完成! 总计用时${runTime} 秒`, 999999)
+  await Plugins.sleep(3000);
+  Plugins.message.destroy(id);
 }
 
 // const onRun = async () => {
@@ -640,7 +643,10 @@ const onSubscribe = async (proxies, subscription) => {
     console.log("bettercloudflareip 更新订阅");
     const { singbox_nodes, runTime } = await bcfi();
     console.log("恭喜！订阅成功！");
-    Plugins.alert(Plugin.name, `恭喜！订阅${Plugin.IPV} ${Plugin.VLESS_NUM}个节点成功！\n完成! 总计用时${runTime} 秒`);
+    // Plugins.alert(Plugin.name, `恭喜！订阅${Plugin.IPV} ${Plugin.VLESS_NUM}个节点成功！\n完成! 总计用时${runTime} 秒`);
+    const { id } = Plugins.message.info(`恭喜！订阅${Plugin.IPV} ${Plugin.VLESS_NUM}个节点成功！\n完成! 总计用时${runTime} 秒`, 999999)
+    await Plugins.sleep(3000);
+    Plugins.message.destroy(id);
     return singbox_nodes;
   }else return proxies;
 
