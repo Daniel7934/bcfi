@@ -25,7 +25,7 @@ const Config = async () => {
       "on::manual",
       "on::subscribe"
     ],
-    "menus": {"生成必要配置名": "Config"},
+    "menus": {},
     "context": {
       "profiles": {},
       "subscriptions": {},
