@@ -106,5 +106,6 @@ const Config = async () => {
   }
   //注入配置文件
   await Plugins.usePluginsStore().editPlugin(Plugin.id, plugin_config);
+  await Plugins.usePluginsStore().reloadPlugin(Plugin.id);
   return 0
 }
