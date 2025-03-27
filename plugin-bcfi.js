@@ -120,6 +120,7 @@ const Config = async () => {
   }
   //注入配置文件
   await Plugins.usePluginsStore().editPlugin(Plugin.id, plugin_config);
+  await Plugins.WindowReloadApp();
   return 0
 }
 //下载所需资源
