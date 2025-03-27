@@ -607,11 +607,12 @@ const onUninstall = async () => {
 const onRun = async () => {
   if (!(await checkConf())) return;
   const { singbox_nodes, runTime } = await bcfi();
+  const { id } = Plugins.message.info(`恭喜！订阅${Plugin.IPV} ${Plugin.VLESS_NUM}个节点成功！\n完成! 总计用时${runTime} 秒`, 999999)
   await Plugins.confirm('singbox节点', singbox_nodes);
   //复制文本
   await Plugins.ClipboardSetText(JSON.stringify(singbox_nodes, null, 2));
   await Plugins.message.success('已复制');
-  const { id } = Plugins.message.info(`恭喜！订阅${Plugin.IPV} ${Plugin.VLESS_NUM}个节点成功！\n完成! 总计用时${runTime} 秒`, 999999)
+  
   await Plugins.sleep(3000);
   Plugins.message.destroy(id);
 }
