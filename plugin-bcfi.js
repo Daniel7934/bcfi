@@ -163,7 +163,10 @@ const bcfi = async () => {
   console.log(singbox_nodes);
   const endTime = new Date();
   const runTime = Math.round((endTime - startTime)/1000);
+  const { id } = Plugins.message.info(`完成! 总计用时${runTime} 秒`, 999999)
   console.log(`完成! 总计用时${runTime} 秒`);
+  await Plugins.sleep(3000);
+  Plugins.message.destroy(id);
   return { singbox_nodes, runTime };
 }
 
@@ -224,7 +227,7 @@ const cftest = async () => {
     
   }
 
-  
+  Plugins.message.destroy(id);
   return ipSpeedData
 }
 
