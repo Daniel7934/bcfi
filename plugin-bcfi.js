@@ -14,7 +14,7 @@
 // 初始化配置
 const Config = async () => {
   const plugin_config = {
-    "id": Plugin.path. ?? "plugin-cloudflareip-filter",
+    "id": Plugin.path.split("/")[2].split(".")[0] ?? "plugin-cloudflareip-filter",
     "name": "bettercloudflareip",
     "version": "v1.0.0",
     "description": "获取最适合的cf优选ip",
@@ -114,7 +114,7 @@ const Config = async () => {
         "options": []
       },
       {
-        "id": "ID_espu9g89",
+        "id": Plugins.sampleID(),
         "title": "订阅文件更新参数配置json",
         "description": "可以自定义订阅文件是否需要TLS，也就是80或443，指定获取ipv4还是ipv6返回订阅singbox格式json，其中sub_path为订阅文件路径，ip_type设置ipv4或ipv6，tls是否需要https，默认false，可改true",
         "key": "SUB_JSON",
