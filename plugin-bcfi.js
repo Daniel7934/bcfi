@@ -132,6 +132,7 @@ const Config = async () => {
   await Plugins.WindowReloadApp();
   return 0
 }
+
 //下载所需资源
 const installBcfi = async () => {
   const coloUrl = 'https://www.baipiao.eu.org/cloudflare/colo';
@@ -163,23 +164,20 @@ const installBcfi = async () => {
     Plugins.message.destroy(id)
   }
 }
-const bcfi = async () => {
+const bcfi = async (ip_type, tls) => {
   const startTime = new Date();
-  const ipArrInfo = await cftest();
-  const singbox_nodes = getSSNodes(ipArrInfo);
+  const ipArrInfo = await cftest(ip_type, tls);
+  const singbox_nodes = getSSNodes(ipArrInfo, ip_type=Plugin.IPV);
   //清除控制台
   console.clear();
   console.log(singbox_nodes);
   const endTime = new Date();
   const runTime = Math.round((endTime - startTime)/1000);
-  // const { id } = Plugins.message.info(`完成! 总计用时${runTime} 秒`, 999999)
   console.log(`完成! 总计用时${runTime} 秒`);
-  // await Plugins.sleep(3000);
-  // Plugins.message.destroy(id);
   return { singbox_nodes, runTime };
 }
 
-const cftest = async () => {
+const cftest = async (ip_type=Plugin.IPV, tls=Plugin.TLS) => {
   let ipSpeedData = [];
   const { id } = Plugins.message.info('程序开始执行...', 999999)
   while (true) {
@@ -188,13 +186,13 @@ const cftest = async () => {
     while(true) {
       const ipnum = 100;
       let ipArr = [];
-      if (Plugin.IPV == 'ipv4') {
-        ipArr = await getRandIpSet(ipnum, V4_FILE, Plugin.IPV);
+      if (ip_type == 'ipv4') {
+        ipArr = await getRandIpSet(ipnum, V4_FILE, ip_type);
       }
-      else if (Plugin.IPV == 'ipv6') {
-        ipArr = await getRandIpSet(ipnum, V6_FILE, Plugin.IPV);
+      else if (ip_type == 'ipv6') {
+        ipArr = await getRandIpSet(ipnum, V6_FILE, ip_type);
       }
-      if (!Plugin.TLS) {
+      if (!tls) {
         if (Plugin.RTT_PROMISE) rttMap = await rtthttpPro(ipArr);
         else rttMap = await rtthttp(ipArr);
       }
@@ -203,6 +201,7 @@ const cftest = async () => {
         else rttMap = await rtthttps(ipArr)
       }
       if (rttMap.size<=0) {
+        Plugins.message.destroy(id);
         await Plugins.confirm("当前所有IP都存在RTT丢包，是否继续新的RTT测试，如果多次测试全丢包，请检查你的网络环境，不要执着新的测试")
       }
       else break;
@@ -211,7 +210,7 @@ const cftest = async () => {
     const ipRttArr = [...rttMap.entries()];
     const allIp = ipRttArr.map(i=>i[0]);
     Plugins.message.update(id, '正在测速可用ip中...')
-    const speedRes = !Plugin.TLS
+    const speedRes = !tls
         ? await limitConcurrency(allIp, Plugin.CONCURRENCY_NUM, speedtesthttp)
         : await limitConcurrency(allIp, Plugin.CONCURRENCY_NUM, speedtesthttps);
     
@@ -452,12 +451,12 @@ const speedtesthttps = async (ip) => {
   }
 }
 //4. 将得到的数据转换成singbox vless节点
-const getSSNodes = (ipArrInfos) => {
+const getSSNodes = (ipArrInfos, ip_type=Plugin.IPV) => {
   let singbox_nodes = [];
   for (let i of ipArrInfos) {
     singbox_nodes.push({
       "type": "vless",
-      "tag": `${i.speed}M/${Plugin.IPV}_${ipLocation$.split("\n").find(l => l.includes(i.colo)).split('-')[0]}_${randStr(3)}`,
+      "tag": `${i.speed}M/${ip_type}_${ipLocation$.split("\n").find(l => l.includes(i.colo)).split('-')[0]}_${randStr(3)}`,
       "server": i.ip.includes("[") ? i.ip.slice(1, i.ip.length - 1) : i.ip,
       "server_port": 80,
       "uuid": Plugin.VLESS_OBJ.UUID,
@@ -632,13 +631,13 @@ const onRun = async () => {
 // }
 
 //工具方法 使用更新订阅时检查是否存在指定文件名
-const checkFileName = async () => {
-  if(Plugin.SUB_FNAMES.length === 0){
-    await Plugins.alert(Plugin.name, '对本插件右键在配置插件中填入订阅文件名（不用填.json），填入后此订阅可以自动更新，若暂时不想添加则先取消<订阅更新时>')
-    return false
-  }
-  return true
-};
+// const checkFileName = async () => {
+//   if(Plugin.SUB_FNAMES.length === 0){
+//     await Plugins.alert(Plugin.name, '对本插件右键在配置插件中填入订阅文件名（不用填.json），填入后此订阅可以自动更新，若暂时不想添加则先取消<订阅更新时>')
+//     return false
+//   }
+//   return true
+// };
 //检查subscription.path里有没有填入的订阅文件名
 function checkSubFileInPath(a, b) {
   if (a.length === 0) {
@@ -648,12 +647,23 @@ function checkSubFileInPath(a, b) {
 }
 //指定文件更新订阅
 const onSubscribe = async (proxies, subscription) => {
-  if (!(await checkFileName())) return
+  // if (!(await checkFileName())) return proxies;
+  const sub_obj = JSON.parse(Plugin.SUB_JSON);
+  for (let item of sub_obj) {
+    if(item.sub_path === subscription.path) {
+      console.log(item.ip_type);
+      console.log(item.tls);
+      const { singbox_nodes, runTime } = await bcfi(item.ip_type, item.tls);
+      console.log("恭喜！订阅成功！");
+      const { id } = Plugins.message.info(`恭喜！订阅${item.ip_type} ${Plugin.VLESS_NUM}个节点成功！\n完成! 总计用时${runTime} 秒`, 999999)
+      await Plugins.sleep(3000);
+      Plugins.message.destroy(id);
+      return singbox_nodes;
+    }
+  }
+  if(Plugin.SUB_FNAMES.length === 0) return proxies;
   if ((await checkSubFileInPath(Plugin.SUB_FNAMES, subscription.path))) {
-    console.log("bettercloudflareip 更新订阅");
     const { singbox_nodes, runTime } = await bcfi();
-    console.log("恭喜！订阅成功！");
-    // Plugins.alert(Plugin.name, `恭喜！订阅${Plugin.IPV} ${Plugin.VLESS_NUM}个节点成功！\n完成! 总计用时${runTime} 秒`);
     const { id } = Plugins.message.info(`恭喜！订阅${Plugin.IPV} ${Plugin.VLESS_NUM}个节点成功！\n完成! 总计用时${runTime} 秒`, 999999)
     await Plugins.sleep(3000);
     Plugins.message.destroy(id);
