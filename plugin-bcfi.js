@@ -167,7 +167,7 @@ const installBcfi = async () => {
 const bcfi = async (ip_type, tls) => {
   const startTime = new Date();
   const ipArrInfo = await cftest(ip_type, tls);
-  const singbox_nodes = getSSNodes(ipArrInfo, ip_type=Plugin.IPV);
+  const singbox_nodes = getSSNodes(ipArrInfo, ip_type);
   //清除控制台
   console.clear();
   console.log(singbox_nodes);
